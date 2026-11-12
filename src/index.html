@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Chess.js</title>
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Chess.js</h1>
+      </header>
+      <section id="quickMatch" aria-label="Opciones de partida">
+        <label for="playerName">Tu nombre</label>
+        <input id="playerName" maxlength="40" autocomplete="nickname" />
+        <div class="gameModeButtons">
+          <button id="playLocal" type="button">Jugar en local</button>
+          <button id="findMatch" type="button">Rival aleatorio</button>
+          <button id="createInvite" type="button">Crear invitación</button>
+          <button id="cancelWaiting" type="button" hidden>Cancelar espera</button>
+        </div>
+        <div id="joinInviteControls">
+          <label for="inviteCode">Código de invitación</label>
+          <input id="inviteCode" maxlength="12" placeholder="12 caracteres" />
+          <button id="joinInvite" type="button">Unirme</button>
+        </div>
+        <div id="inviteShare" hidden>
+          <span>Código: <strong id="inviteCodeDisplay"></strong></span>
+          <button id="copyInvite" type="button">Invitar por enlace</button>
+        </div>
+        <span id="matchStatus" role="status" aria-live="polite">Conectando…</span>
+      </section>
+      <dialog id="favDialog">
+        <span> ¡Felicidades! Has ganado la partida. </span>
+        <span id="winner"></span>
+        <div
+          style="
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            gap: 16px;
+          "
+        >
+          <button id="restartGame">Reiniciar</button>
+          <button id="closeDialog">Cerrar</button>
+        </div>
+      </dialog>
+      <div id="playerStatsContainer">
+        <span>Player 2 (Black)</span>
+        <div style="display: flex; align-items: center; vertical-align: middle">
+          <img
+            class="CapturedPieces"
+            src="images/black-pawn.svg"
+            alt="Peón negro"
+          />
+          <span id="BlackplayerScore">0</span>
+        </div>
+      </div>
+      <div id="chessNavContainer">
+        <section id="chessboard" aria-label="TableroCell de ajedrez">
+          <!-- Negras: rango 8 -->
+          <div
+            class="oddChessBox"
+            data-square="a8Cell"
+            id="a8Cell"
+            aria-label="a8Cell, torre negra"
+          >
+            <img
+              id="a8"
+              class="chessPiece"
+              src="images/black-rook.svg"
+              alt="Torre negra"
+            />
+          </div>
+          <div
+            class="evenChessBox"
+            data-square="b8Cell"
+            id="b8Cell"
+            aria-label="b8Cell, caballo negro"
+          >
+            <img
+              id="b8"
+              class="chessPiece"
+              src="images/black-knight.svg"
+              alt="Caballo negro"
+            />
+          </div>
+          <div
+            class="oddChessBox"
+            data-square="c8Cell"
+            id="c8Cell"
+            aria-label="c8Cell, alfil negro"
+          >
+            <img
+              id="c8"
+              class="chessPiece"
+              src="images/black-bishop.svg"
+              alt="Alfil negro"
+            />
+          </div>
+          <div
+            class="evenChessBox"
+            data-square="d8Cell"
+            id="d8Cell"
+            aria-label="d8Cell, dama negra"
+          >
+            <img
+              id="d8"
+              class="chessPiece"
+              src="images/black-queen.svg"
+              alt="Dama negra"
+            />
+          </div>
+          <div
+            class="oddChessBox"
+            data-square="e8Cell"
+            id="e8Cell"
+            aria-label="e8Cell, rey negro"
+          >
+            <img
+              id="e8"
+              class="chessPiece"
+              src="images/black-king.svg"
+              alt="Rey negro"
+            />
+          </div>
+          <div
+            class="evenChessBox"
+            data-square="f8Cell"
+            id="f8Cell"
+            aria-label="f8Cell, alfil negro"
+          >
+            <img
+              id="f8"
+              class="chessPiece"
+              src="images/black-bishop.svg"
+              alt="Alfil negro"
+            />
+          </div>
+          <div
+            class="oddChessBox"
+            data-square="g8Cell"
+            id="g8Cell"
+            aria-label="g8Cell, caballo negro"
+          >
+            <img
+              id="g8"
+              class="chessPiece"
+              src="images/black-knight.svg"
+              alt="Caballo negro"
+            />
+          </div>
+          <div
+            class="evenChessBox"
+            data-square="h8Cell"
+            id="h8Cell"
+            aria-label="h8Cell, torre negra"
+          >
+            <img
+              id="h8"
+              class="chessPiece"
+              src="images/black-rook.svg"
+              alt="Torre negra"
+            />
+          </div>
+
+          <!-- Negras: rango 7 -->
+          <div
+            class="evenChessBox"
+            data-square="a7Cell"
+            id="a7Cell"
+            aria-label="a7Cell, peón negro"
+          >
+            <img
+              id="a7"
+              class="chessPiece"
+              src="images/black-pawn.svg"
+              alt="Peón negro"
+            />
+          </div>
+          <div
+            class="oddChessBox"
+            data-square="b7Cell"
+            id="b7Cell"
+            aria-label="b7Cell, peón negro"
+          >
+            <img
+              id="b7"
+              class="chessPiece"
+              src="images/black-pawn.svg"
+              alt="Peón negro"
+            />
+          </div>
+          <div
+            class="evenChessBox"
+            data-square="c7Cell"
+            id="c7Cell"
+            aria-label="c7Cell, peón negro"
+          >
+            <img
+              id="c7"
+              class="chessPiece"
+              src="images/black-pawn.svg"
+              alt="Peón negro"
+            />
+          </div>
+          <div
+            class="oddChessBox"
+            data-square="d7Cell"
+            id="d7Cell"
+            aria-label="d7Cell, peón negro"
+          >
+            <img
+              id="d7"
+              class="chessPiece"
+              src="images/black-pawn.svg"
+              alt="Peón negro"
+            />
+          </div>
+          <div
+            class="evenChessBox"
+            data-square="e7Cell"
+            id="e7Cell"
+            aria-label="e7Cell, peón negro"
+          >
+            <img
+              id="e7"
+              class="chessPiece"
+              src="images/black-pawn.svg"
+              alt="Peón negro"
+            />
+          </div>
+          <div
+            class="oddChessBox"
+            data-square="f7Cell"
+            id="f7Cell"
+            aria-label="f7Cell, peón negro"
+          >
+            <img
+              id="f7"
+              class="chessPiece"
+              src="images/black-pawn.svg"
+              alt="Peón negro"
+            />
+          </div>
+          <div
+            class="evenChessBox"
+            data-square="g7Cell"
+            id="g7Cell"
+            aria-label="g7Cell, peón negro"
+          >
+            <img
+              id="g7"
+              class="chessPiece"
+              src="images/black-pawn.svg"
+              alt="Peón negro"
+            />
+          </div>
+          <div
+            class="oddChessBox"
+            data-square="h7Cell"
+            id="h7Cell"
+            aria-label="h7Cell, peón negro"
+          >
+            <img
+              id="h7"
+              class="chessPiece"
+              src="images/black-pawn.svg"
+              alt="Peón negro"
+            />
+          </div>
+          <!-- Casillas vacías: rangos 6 a 3 -->
+          <div class="oddChessBox" data-square="a6Cell" id="a6Cell"></div>
+          <div class="evenChessBox" data-square="b6Cell" id="b6Cell"></div>
+          <div class="oddChessBox" data-square="c6Cell" id="c6Cell"></div>
+          <div class="evenChessBox" data-square="d6Cell" id="d6Cell"></div>
+          <div class="oddChessBox" data-square="e6Cell" id="e6Cell"></div>
+          <div class="evenChessBox" data-square="f6Cell" id="f6Cell"></div>
+          <div class="oddChessBox" data-square="g6Cell" id="g6Cell"></div>
+          <div class="evenChessBox" data-square="h6Cell" id="h6Cell"></div>
+          <div class="evenChessBox" data-square="a5Cell" id="a5Cell"></div>
+          <div class="oddChessBox" data-square="b5Cell" id="b5Cell"></div>
+          <div class="evenChessBox" data-square="c5Cell" id="c5Cell"></div>
+          <div class="oddChessBox" data-square="d5Cell" id="d5Cell"></div>
+          <div class="evenChessBox" data-square="e5Cell" id="e5Cell"></div>
+          <div class="oddChessBox" data-square="f5Cell" id="f5Cell"></div>
+          <div class="evenChessBox" data-square="g5Cell" id="g5Cell"></div>
+          <div class="oddChessBox" data-square="h5Cell" id="h5Cell"></div>
+          <div class="oddChessBox" data-square="a4Cell" id="a4Cell"></div>
+          <div class="evenChessBox" data-square="b4Cell" id="b4Cell"></div>
+          <div class="oddChessBox" data-square="c4Cell" id="c4Cell"></div>
+          <div class="evenChessBox" data-square="d4Cell" id="d4Cell"></div>
+          <div class="oddChessBox" data-square="e4Cell" id="e4Cell"></div>
+          <div class="evenChessBox" data-square="f4Cell" id="f4Cell"></div>
+          <div class="oddChessBox" data-square="g4Cell" id="g4Cell"></div>
+          <div class="evenChessBox" data-square="h4Cell" id="h4Cell"></div>
+          <div class="evenChessBox" data-square="a3Cell" id="a3Cell"></div>
+          <div class="oddChessBox" data-square="b3Cell" id="b3Cell"></div>
+          <div class="evenChessBox" data-square="c3Cell" id="c3Cell"></div>
+          <div class="oddChessBox" data-square="d3Cell" id="d3Cell"></div>
+          <div class="evenChessBox" data-square="e3Cell" id="e3Cell"></div>
+          <div class="oddChessBox" data-square="f3Cell" id="f3Cell"></div>
+          <div class="evenChessBox" data-square="g3Cell" id="g3Cell"></div>
+          <div class="oddChessBox" data-square="h3Cell" id="h3Cell"></div>
+
+          <!-- Blancas: rango 2 -->
+          <div
+            class="oddChessBox"
+            data-square="a2Cell"
+            id="a2Cell"
+            aria-label="a2Cell, peón blanco"
+          >
+            <img
+              id="a2"
+              class="chessPiece"
+              src="images/white-pawn.svg"
+              alt="Peón blanco"
+            />
+          </div>
+          <div
+            class="evenChessBox"
+            data-square="b2Cell"
+            id="b2Cell"
+            aria-label="b2Cell, peón blanco"
+          >
+            <img
+              id="b2"
+              class="chessPiece"
+              src="images/white-pawn.svg"
+              alt="Peón blanco"
+            />
+          </div>
+          <div
+            class="oddChessBox"
+            data-square="c2Cell"
+            id="c2Cell"
+            aria-label="c2Cell, peón blanco"
+          >
+            <img
+              id="c2"
+              class="chessPiece"
+              src="images/white-pawn.svg"
+              alt="Peón blanco"
+            />
+          </div>
+          <div
+            class="evenChessBox"
+            data-square="d2Cell"
+            id="d2Cell"
+            aria-label="d2Cell, peón blanco"
+          >
+            <img
+              id="d2"
+              class="chessPiece"
+              src="images/white-pawn.svg"
+              alt="Peón blanco"
+            />
+          </div>
+          <div
+            class="oddChessBox"
+            data-square="e2Cell"
+            id="e2Cell"
+            aria-label="e2Cell, peón blanco"
+          >
+            <img
+              id="e2"
+              class="chessPiece"
+              src="images/white-pawn.svg"
+              alt="Peón blanco"
+            />
+          </div>
+          <div
+            class="evenChessBox"
+            data-square="f2Cell"
+            id="f2Cell"
+            aria-label="f2Cell, peón blanco"
+          >
+            <img
+              id="f2"
+              class="chessPiece"
+              src="images/white-pawn.svg"
+              alt="Peón blanco"
+            />
+          </div>
+          <div
+            class="oddChessBox"
+            data-square="g2Cell"
+            id="g2Cell"
+            aria-label="g2Cell, peón blanco"
+          >
+            <img
+              id="g2"
+              class="chessPiece"
+              src="images/white-pawn.svg"
+              alt="Peón blanco"
+            />
+          </div>
+          <div
+            class="evenChessBox"
+            data-square="h2Cell"
+            id="h2Cell"
+            aria-label="h2Cell, peón blanco"
+          >
+            <img
+              id="h2"
+              class="chessPiece"
+              src="images/white-pawn.svg"
+              alt="Peón blanco"
+            />
+          </div>
+
+          <!-- Blancas: rango 1 -->
+          <div
+            class="evenChessBox"
+            data-square="a1Cell"
+            id="a1Cell"
+            aria-label="a1Cell, torre blanca"
+          >
+            <img
+              id="a1"
+              class="chessPiece"
+              src="images/white-rook.svg"
+              alt="Torre blanca"
+            />
+          </div>
+          <div
+            class="oddChessBox"
+            data-square="b1Cell"
+            id="b1Cell"
+            aria-label="b1Cell, caballo blanco"
+          >
+            <img
+              id="b1"
+              class="chessPiece"
+              src="images/white-knight.svg"
+              alt="Caballo blanco"
+            />
+          </div>
+          <div
+            class="evenChessBox"
+            data-square="c1Cell"
+            id="c1Cell"
+            aria-label="c1Cell, alfil blanco"
+          >
+            <img
+              id="c1"
+              class="chessPiece"
+              src="images/white-bishop.svg"
+              alt="Alfil blanco"
+            />
+          </div>
+          <div
+            class="oddChessBox"
+            data-square="d1Cell"
+            id="d1Cell"
+            aria-label="d1Cell, dama blanca"
+          >
+            <img
+              id="d1"
+              class="chessPiece"
+              src="images/white-queen.svg"
+              alt="Dama blanca"
+            />
+          </div>
+          <div
+            class="evenChessBox"
+            data-square="e1Cell"
+            id="e1Cell"
+            aria-label="e1Cell, rey blanco"
+          >
+            <img
+              id="e1"
+              class="chessPiece"
+              src="images/white-king.svg"
+              alt="Rey blanco"
+            />
+          </div>
+          <div
+            class="oddChessBox"
+            data-square="f1Cell"
+            id="f1Cell"
+            aria-label="f1Cell, alfil blanco"
+          >
+            <img
+              id="f1"
+              class="chessPiece"
+              src="images/white-bishop.svg"
+              alt="Alfil blanco"
+            />
+          </div>
+          <div
+            class="evenChessBox"
+            data-square="g1Cell"
+            id="g1Cell"
+            aria-label="g1Cell, caballo blanco"
+          >
+            <img
+              id="g1"
+              class="chessPiece"
+              src="images/white-knight.svg"
+              alt="Caballo blanco"
+            />
+          </div>
+          <div
+            class="oddChessBox"
+            data-square="h1Cell"
+            id="h1Cell"
+            aria-label="h1Cell, torre blanca"
+          >
+            <img
+              id="h1"
+              class="chessPiece"
+              src="images/white-rook.svg"
+              alt="Torre blanca"
+            />
+          </div>
+        </section>
+        <nav id="history" aria-labelledby="historyTitle">
+          <div class="historyHeading">
+            <div>
+              <p class="eyebrow">PARTIDA</p>
+              <h2 id="historyTitle">Historial</h2>
+            </div>
+            <span class="historyStatus">LIVE</span>
+          </div>
+          <p class="historyDescription">
+            Las jugadas reales aparecerán acá en notación algebraica.
+          </p>
+          <ul
+            id="historyList"
+            aria-live="polite"
+            aria-label="Historial de jugadas"
+          ></ul>
+        </nav>
+      </div>
+      <div id="playerStatsContainer">
+        <span>Player 1 (White)</span>
+        <div style="display: flex; align-items: center; vertical-align: middle">
+          <img
+            class="CapturedPieces"
+            src="images/white-pawn.svg"
+            alt="Peón blanco"
+          />
+          <span id="WhiteplayerScore">0</span>
+        </div>
+      </div>
+    </main>
+    <script type="importmap">
+      {
+        "imports": {
+          "canvas-confetti": "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.module.mjs"
+        }
+      }
+    </script>
+    <script type="module" src="./code.js"></script>
+  </body>
+</html>

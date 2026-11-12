@@ -1,0 +1,327 @@
+:root {
+  color-scheme: light dark;
+  --black: rgb(48, 46, 43);
+  --white-box: rgb(234, 237, 209);
+  --green-box: rgb(115, 149, 82);
+  --white-piece: rgb(249, 249, 249);
+  --black-piece: rgb(93, 90, 88);
+  font-family: Menlo, monospace;
+}
+body {
+  display: grid;
+  justify-content: center;
+  background-color: var(--black);
+  min-height: 100vh;
+  width: 100%;
+  padding: 24px 16px;
+  margin: 0;
+  box-sizing: border-box;
+}
+main {
+  display: grid;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+section {
+  position: relative;
+}
+#chessNavContainer {
+  display: grid;
+  grid-template-columns: minmax(0, 600px) minmax(260px, 300px);
+  gap: 24px;
+  align-items: start;
+  justify-content: center;
+}
+#history {
+  width: 100%;
+  height: 600px;
+  padding: 24px;
+  box-sizing: border-box;
+  border: 1px solid rgb(93, 90, 88);
+  border-radius: 12px;
+  background-color: rgb(39, 38, 36);
+  color: var(--white-piece);
+  overflow-y: auto;
+}
+.historyHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgb(93, 90, 88);
+}
+.eyebrow,
+.moveColor {
+  color: rgb(166, 162, 151);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+.eyebrow {
+  margin: 0 0 6px;
+}
+#history h2 {
+  margin: 0;
+  font-size: 22px;
+}
+.historyStatus {
+  padding: 5px 8px;
+  border: 1px solid var(--green-box);
+  border-radius: 4px;
+  color: var(--white-box);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.historyDescription {
+  margin: 16px 0;
+  color: rgb(190, 188, 180);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+}
+#historyList {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  text-align: left;
+}
+.historyEmpty {
+  padding: 12px 0;
+  color: rgb(166, 162, 151);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.historyRow {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgb(65, 63, 60);
+}
+.historyLabels {
+  padding: 0 0 8px;
+  border-bottom: 1px solid rgb(93, 90, 88);
+  color: rgb(166, 162, 151);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.historyLabels span:nth-child(2),
+.historyLabels span:nth-child(3) {
+  padding-left: 10px;
+}
+.moveNumber {
+  color: rgb(166, 162, 151);
+  font-size: 12px;
+}
+.historyMove {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 10px;
+  border-left: 2px solid rgb(93, 90, 88);
+}
+.historyMove strong {
+  color: var(--white-piece);
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+.whiteMove {
+  background-color: rgb(52, 51, 48);
+}
+.blackMove {
+  background-color: rgb(45, 44, 42);
+}
+.captureMove {
+  border-left-color: rgb(194, 151, 82);
+}
+.specialMove {
+  border-left-color: var(--green-box);
+}
+.checkMove {
+  border-left-color: rgb(217, 177, 77);
+}
+.mateMove {
+  border-left-color: rgb(191, 88, 75);
+  background-color: rgb(67, 43, 41);
+}
+.promotionMove {
+  border-left-color: rgb(125, 147, 190);
+  background-color: rgb(43, 47, 59);
+}
+.emptyMove {
+  opacity: 0.5;
+}
+#favDialog {
+  padding: 24px;
+  border: none;
+  border-radius: 12px;
+  background-color: rgb(39, 38, 36);
+  color: var(--white-piece);
+  flex-direction: column;
+  gap: 16px;
+}
+
+#playerStatsContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+}
+#quickMatch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 12px 0 20px;
+  color: var(--white-piece);
+}
+#quickMatch button {
+  min-height: 38px;
+  box-sizing: border-box;
+  border: 1px solid var(--green-box);
+  border-radius: 6px;
+  padding: 8px 12px;
+  background: var(--green-box);
+  color: white;
+  font: inherit;
+  cursor: pointer;
+}
+.gameModeButtons,
+#joinInviteControls,
+#inviteShare {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+#joinInviteControls,
+#inviteShare {
+  flex-basis: 100%;
+}
+#inviteCode {
+  width: 140px;
+  text-transform: lowercase;
+}
+#inviteShare {
+  color: var(--white-piece);
+  font-size: 12px;
+}
+#inviteShare[hidden] {
+  display: none;
+}
+#playerName,
+#inviteCode {
+  min-height: 38px;
+  box-sizing: border-box;
+  border: 1px solid rgb(93, 90, 88);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font: inherit;
+}
+#playerName {
+  width: 180px;
+  background: rgb(39, 38, 36);
+  color: var(--white-piece);
+}
+#quickMatch button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+#matchStatus {
+  flex-basis: 100%;
+  min-height: 1.2em;
+  color: rgb(190, 188, 180);
+  font-size: 12px;
+}
+.CapturedPieces {
+  width: 40px;
+  height: 40px;
+}
+#BlackplayerScore,
+#WhiteplayerScore {
+  color: var(--white-piece);
+  font-size: 25px;
+  padding-left: 0;
+}
+#chessboard {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  width: 100%;
+  max-width: 600px;
+  aspect-ratio: 1 / 1;
+}
+
+.evenChessBox {
+  background-color: var(--green-box);
+}
+.evenChessBox.focus {
+  background-image: url("images/move-indicator.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100px 100px;
+}
+.evenChessBox.avaliableMove {
+  background-image: url("images/move-indicator.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100px 100px;
+}
+.oddChessBox {
+  background-color: var(--white-box);
+}
+.oddChessBox.avaliableMove {
+  background-image: url("images/move-indicator.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100px 100px;
+}
+#chessboard > div {
+  display: grid;
+  place-items: center;
+}
+.chessPiece {
+  display: block;
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+}
+
+@media (max-width: 980px) {
+  #chessNavContainer {
+    grid-template-columns: minmax(0, 600px);
+    justify-content: center;
+  }
+
+  #history {
+    height: auto;
+    max-height: 460px;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    padding: 16px 10px;
+  }
+
+  #chessboard {
+    width: 100%;
+  }
+
+  #history {
+    padding: 18px;
+  }
+}

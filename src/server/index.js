@@ -147,6 +147,16 @@ async function loadPlayerGames(playerId) {
   return result.rows[0] ?? null;
 }
 
+async function loadGamePlayers(gameId) {
+  const result = await db.execute({
+    sql: `SELECT gp.color, p.display_name AS displayName
+          FROM game_players gp JOIN players p ON p.id = gp.player_id
+          WHERE gp.game_id = ?`,
+    args: [gameId],
+  });
+  return Object.fromEntries(result.rows.map(({ color, displayName }) => [color, displayName]));
+}
+
 async function attachPlayerToGame(socket, game) {
   if (socket.data.gameId && socket.data.gameId !== game.id) {
     await socket.leave(socket.data.gameId);
@@ -159,12 +169,14 @@ async function attachPlayerToGame(socket, game) {
           FROM moves WHERE game_id = ? ORDER BY move_number`,
     args: [game.id],
   });
+  const players = await loadGamePlayers(game.id);
   socket.emit("game:joined", {
     gameId: game.id,
     color: game.color,
     status: game.status,
     matchMode: game.match_mode,
     inviteCode: game.invite_code,
+    players,
     moves: moves.rows,
   });
 }
@@ -303,7 +315,10 @@ io.on("connection", async (socket) => {
 
       await attachPlayerToGame(socket, joinedGame);
       if (joinedGame.status === "active") {
-        io.to(joinedGame.id).emit("game:started", { gameId: joinedGame.id });
+        io.to(joinedGame.id).emit("game:started", {
+          gameId: joinedGame.id,
+          players: await loadGamePlayers(joinedGame.id),
+        });
       }
       acknowledge({ ok: true });
     } catch (error) {
@@ -430,7 +445,10 @@ io.on("connection", async (socket) => {
         transaction.close();
       }
       await attachPlayerToGame(socket, game);
-      io.to(game.id).emit("game:started", { gameId: game.id });
+      io.to(game.id).emit("game:started", {
+        gameId: game.id,
+        players: await loadGamePlayers(game.id),
+      });
       acknowledge({ ok: true });
     } catch (error) {
       console.error("No se pudo aceptar la invitación:", error);
@@ -483,6 +501,12 @@ io.on("connection", async (socket) => {
       });
       socket.data.displayName = displayName;
       socket.emit("player:renamed", { displayName });
+      if (socket.data.gameId) {
+        io.to(socket.data.gameId).emit("game:players", {
+          gameId: socket.data.gameId,
+          players: await loadGamePlayers(socket.data.gameId),
+        });
+      }
     } catch (error) {
       console.error("No se pudo actualizar el nombre:", error);
     }
@@ -571,7 +595,7 @@ io.on("connection", async (socket) => {
     try {
       const gameId = payload?.gameId;
       const game = await db.execute({
-        sql: `SELECT g.id, g.status, gp.color
+        sql: `SELECT g.id, g.status, g.match_mode, gp.color
               FROM games g JOIN game_players gp ON gp.game_id = g.id
               WHERE g.id = ? AND gp.player_id = ?`,
         args: [gameId, playerId],
@@ -582,10 +606,13 @@ io.on("connection", async (socket) => {
               FROM moves WHERE game_id = ? ORDER BY move_number`,
         args: [gameId],
       });
+      const players = await loadGamePlayers(gameId);
       socket.emit("game:state", {
         gameId,
         status: game.rows[0].status,
+        matchMode: game.rows[0].match_mode,
         color: game.rows[0].color,
+        players,
         moves: moves.rows,
       });
     } catch (error) {

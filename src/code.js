@@ -14,10 +14,13 @@ const joinInviteButton = document.getElementById("joinInvite");
 const inviteShare = document.getElementById("inviteShare");
 const inviteCodeDisplay = document.getElementById("inviteCodeDisplay");
 const copyInviteButton = document.getElementById("copyInvite");
+const whitePlayerName = document.getElementById("whitePlayerName");
+const blackPlayerName = document.getElementById("blackPlayerName");
 const tokenKey = "chessPlayerToken";
 const nameKey = "chessPlayerName";
 const playerToken =
-  localStorage.getItem(tokenKey) ?? `${crypto.randomUUID()}${crypto.randomUUID()}`;
+  localStorage.getItem(tokenKey) ??
+  `${crypto.randomUUID()}${crypto.randomUUID()}`;
 localStorage.setItem(tokenKey, playerToken);
 nameInput.value =
   localStorage.getItem(nameKey) ?? `Invitado-${playerToken.slice(0, 5)}`;
@@ -36,6 +39,16 @@ let gameMode = null;
 let pendingLinkCode = new URL(location.href).searchParams.get("invite");
 let currentInviteCode = pendingLinkCode;
 let autoJoinAttempted = false;
+
+const resetPlayerNames = () => {
+  whitePlayerName.textContent = "Player 1 (White)";
+  blackPlayerName.textContent = "Player 2 (Black)";
+};
+
+const showPlayerNames = (players = {}) => {
+  if (players.white) whitePlayerName.textContent = players.white;
+  if (players.black) blackPlayerName.textContent = players.black;
+};
 
 const updateStatus = (message) => {
   status.textContent = message;
@@ -73,6 +86,7 @@ const clearOnlineGame = () => {
   gameMode = null;
   gameStarted = false;
   playerColor = null;
+  resetPlayerNames();
   localStorage.removeItem("chessGameId");
   Chess.onlineGame = false;
   Chess.playerColor = null;
@@ -117,10 +131,13 @@ const applyGameSnapshot = (game) => {
   chess.start();
   Chess.onlineGame = true;
   Chess.playerColor = game.status === "active" ? playerColor : null;
+  showPlayerNames(game.players);
   for (const move of game.moves) {
     if (!Chess.applyRemoteMove(move)) {
       Chess.onlineGame = false;
-      updateStatus("La partida quedó desincronizada. Cancelá la sala o volvé a unirte.");
+      updateStatus(
+        "La partida quedó desincronizada. Cancelá la sala o volvé a unirte.",
+      );
       return;
     }
   }
@@ -147,7 +164,9 @@ const joinInvitation = (code) => {
     updateStatus("Todavía no hay conexión con el servidor.");
     return;
   }
-  inviteCodeInput.value = String(code ?? "").trim().toLowerCase();
+  inviteCodeInput.value = String(code ?? "")
+    .trim()
+    .toLowerCase();
   updateStatus("Uniéndote a la partida…");
   joinInviteButton.disabled = true;
   socket.emit("invite:join", { code: inviteCodeInput.value }, (result) => {
@@ -175,13 +194,15 @@ nameInput.addEventListener("change", () => {
   nameInput.value = name || `Invitado-${playerToken.slice(0, 5)}`;
   localStorage.setItem(nameKey, nameInput.value);
   socket.auth.displayName = nameInput.value;
-  if (socket.connected) socket.emit("player:rename", { displayName: nameInput.value });
+  if (socket.connected)
+    socket.emit("player:rename", { displayName: nameInput.value });
 });
 
 localButton.addEventListener("click", async () => {
   if (!(await cancelPendingGame())) return;
   chess.end();
   chess.start();
+  resetPlayerNames();
   updateStatus("Partida local: juegan dos personas en esta pantalla.");
 });
 
@@ -242,12 +263,16 @@ copyInviteButton.addEventListener("click", async () => {
     await navigator.clipboard.writeText(inviteUrl.toString());
     updateStatus("Enlace de invitación copiado.");
   } catch {
-    updateStatus("No se pudo copiar; copiá el enlace desde la barra del navegador.");
+    updateStatus(
+      "No se pudo copiar; copia el enlace desde la barra del navegador.",
+    );
   }
 });
 
-socket.on("connect", () => updateStatus("Conectado. Elegí cómo querés jugar."));
-socket.on("disconnect", () => updateStatus("Se perdió la conexión; intentando reconectar…"));
+socket.on("connect", () => updateStatus("Conectado."));
+socket.on("disconnect", () =>
+  updateStatus("Se perdió la conexión; intentando reconectar…"),
+);
 socket.on("connect_error", (error) => updateStatus(error.message));
 socket.on("game:error", ({ message }) => updateStatus(message));
 
@@ -260,7 +285,7 @@ socket.on("player:ready", ({ hasGame }) => {
     joinInvitation(pendingLinkCode);
     return;
   }
-  if (previousGameId) updateStatus("La partida anterior ya no existe; elegí otra modalidad.");
+  if (previousGameId) updateStatus("La partida anterior ya no existe.");
 });
 
 socket.on("game:joined", (game) => {
@@ -275,14 +300,22 @@ socket.on("game:joined", (game) => {
   applyGameSnapshot(game);
 });
 
-socket.on("game:started", ({ gameId: startedGameId }) => {
+socket.on("game:started", ({ gameId: startedGameId, players }) => {
   if (startedGameId !== gameId) return;
+  showPlayerNames(players);
   gameStarted = true;
   Chess.onlineGame = true;
   Chess.playerColor = playerColor;
   setOnlineControls(true);
   inviteShare.hidden = true;
-  updateStatus(`¡Rival conectado! Jugás con ${playerColor === "white" ? "blancas" : "negras"}.`);
+  updateStatus(
+    `¡Rival conectado! Jugás con ${playerColor === "white" ? "blancas" : "negras"}.`,
+  );
+});
+
+socket.on("game:players", ({ gameId: updatedGameId, players }) => {
+  if (updatedGameId !== gameId) return;
+  showPlayerNames(players);
 });
 
 socket.on("game:move", (move) => {
